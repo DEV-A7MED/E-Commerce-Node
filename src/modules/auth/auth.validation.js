@@ -9,7 +9,8 @@ export const signUpSchema=joi.object({
     cPass:generalFields.cPassword,
     phone:joi.number(),
     DOB:joi.string(),
-    file:generalFields.file.required()
+    file:generalFields.file.required(),
+    
 }).required();
 
 export const logInSchema = joi.object({

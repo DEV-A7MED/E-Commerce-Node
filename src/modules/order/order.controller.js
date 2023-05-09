@@ -181,7 +181,7 @@ const cancelOrder = async (req, res, nxt) => {
 }
 const webHook = async (req, res, nxt) => {
   const stripe = new Stripe(process.env.STRIP_SECRET_KEY)
-  const endpointSecret = 'whsec_83a46a9d0727689d77d4bf46a739d8dbc4792c8a15050a2e9f5654471f9301f5'
+  const endpointSecret = 'whsec_Fhxao6F87Nkdh9awruwpKjbgMA6cfikv'
   const sig = req.headers['stripe-signature']
   let event
   try {

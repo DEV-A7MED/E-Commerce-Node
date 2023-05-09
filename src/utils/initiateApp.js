@@ -9,7 +9,15 @@ const initApp = (app, express) => {
     const port = process.env.PORT || 5000
 
     //convert Buffer Data
-    app.use(express.json({}))
+    // app.use(express.json({}))
+    app.use((req, res, nxt) => {
+        if (req.originalUrl == '/order/webhook') {
+            nxt()
+        } 
+        else {
+            express.json({})(req, res, nxt)
+        }
+    })
     //connect to DB
     connectDB()
     //Setup API Routing 

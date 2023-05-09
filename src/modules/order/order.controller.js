@@ -1,9 +1,10 @@
-// import Stripe from 'stripe'
+import Stripe from 'stripe'
 import couponModel from '../../../DB/model/CouponModel.js'
 import { validationCoupon } from '../coupon/coupon.controller.js'
 import cartModel from '../../../DB/model/CartModel.js'
 import productModel from '../../../DB/model/ProductModel.js'
 import orderModel from '../../../DB/model/OrderModel.js'
+import payment from '../../utils/payment.js'
 
 
 const createOrder = async (req, res, nxt) => {
@@ -100,7 +101,39 @@ const createOrder = async (req, res, nxt) => {
         $pull: { products: { productId: { $in: productIds } } },
       },
     )
-
+    if (order.paymentMethod == 'card') {
+      if (req.body.coupon) {
+        const stripe = new Stripe(process.env.STRIPE_SERCET_KEY)
+        const coupon = await stripe.coupons.create({
+          percent_off: req.body.coupon.amount,
+        })
+        req.body.couponId = coupon.id
+      }
+      const session = await payment({
+        payment_method_types: [order.paymentMethod],
+        mode: 'payment',
+        customer_email: req.user.email,
+        metadata: {
+          orderId: order._id.toString(),
+        },
+        cancel_url: `${process.env.CANCEL_URL}?orderId=${order._id}`,
+        success_url: `${process.env.SUCCESS_URL}?orderId=${order._id}`,
+        discounts: req.body.couponId ? [{ coupon: req.body.couponId }] : [],
+        line_items: order.products.map((product) => {
+          return {
+            price_data: {
+              currency: 'EGP',
+              product_data: {
+                name: product.name,
+              },
+              unit_amount: product.productPrice * 100,
+            },
+            quantity: product.quantity,
+          }
+        }),
+      })
+      return res.status(201).json({ message: 'Done', order, session })
+    }
   
   }
   res.status(201).json({ message: 'Done', order })
@@ -141,11 +174,36 @@ const cancelOrder = async (req, res, nxt) => {
       await productModel.findByIdAndUpdate(product.productId, {
         $inc: { stock: parseInt(product.quantity) },
       })
+
     }
     res.status(200).json({ message: 'order cancelled succesfully' })
   }
 }
+const webHook = async (req, res, nxt) => {
+  const stripe = new Stripe(process.env.STRIP_SECRET_KEY)
+  const endpointSecret = 'whsec_83a46a9d0727689d77d4bf46a739d8dbc4792c8a15050a2e9f5654471f9301f5'
+  const sig = req.headers['stripe-signature']
+  let event
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret)
+  } catch (err) {
+    res.status(400).send(`Webhook Error: ${err.message}`)
+    return
+  }
+  const { orderId } = event.data.object.metadata
+  if (event.type == 'checkout.session.completed') {
+    await orderModel.findByIdAndUpdate(orderId, {
+      orderStatus: 'confirmed',
+    })
+    return res.status(200).json({ message: 'Payment successed' })
+  }
+  await orderModel.findByIdAndUpdate(orderId, {
+    orderStatus: 'payment failed',
+  })
+  return res.status(200).json({ message: 'payment failed' })
+}
 export {
   createOrder,
-  cancelOrder
+  cancelOrder,
+  webHook
 }

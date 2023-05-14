@@ -16,8 +16,8 @@ export const addReview = async (req, res, nxt) => {
     })
     if (!orders.length) return nxt(new Error('you canot review product before buy it', { cause: 400 }))
     // check if user make review before
-    // const existReview=await reviewModel.findById({userId:req.user._id})
-    // if(existReview) return nxt(new Error('you already added review', { cause: 400 }))
+    const existReview=await reviewModel.find({userId:req.user._id,productId})
+    if(existReview) return nxt(new Error('you already added review', { cause: 400 }))
     // create review
     const review = await reviewModel.create({
     userId: req.user._id,

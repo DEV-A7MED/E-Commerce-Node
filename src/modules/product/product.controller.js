@@ -133,7 +133,7 @@ const updateProduct = async (req, res, nxt) => {
 }
 const productList = async (req, res, nxt) => {
     //ApiFeatures class
-    const apiFeature = new ApiFeatures(productModel.find(), req.query)
+    const apiFeature = new ApiFeatures(productModel.find().populate([{ path: 'Reviews' }]), req.query)
     .paginate()
     .sort()
     .select()

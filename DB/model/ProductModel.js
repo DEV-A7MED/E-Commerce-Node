@@ -78,8 +78,19 @@ const productSchema = new mongoose.Schema({
         ref: "User"
     }]
 
-}, {
-    timestamps: true
+}, 
+{
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+    timestamps: true,
+  },
+)
+
+productSchema.virtual('Reviews', {
+  ref: 'Review',
+  localField: '_id',
+  foreignField: 'productId',
+  // justOne:true
 })
 
 

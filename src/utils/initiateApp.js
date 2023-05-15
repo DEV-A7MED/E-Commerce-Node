@@ -1,8 +1,10 @@
 
 
+import { graphqlHTTP } from 'express-graphql'
 import connectDB from '../../DB/connection.js'
 import * as Routers from '../index.router.js'
 import { globalResponse } from './errorHandling.js'
+import { productSchema } from '../modules/product/GraphQl/schema.js'
 
 
 const initApp = (app, express) => {
@@ -20,6 +22,12 @@ const initApp = (app, express) => {
     })
     //connect to DB
     connectDB()
+    //Setup graphql
+    app.use('/graphql',graphqlHTTP({
+        schema:productSchema,
+        graphiql:true
+        
+    }))
     //Setup API Routing 
     app.use(`/auth`, Routers.authRouter)
     app.use(`/user`, Routers.userRouter)

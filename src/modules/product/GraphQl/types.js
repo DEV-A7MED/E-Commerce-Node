@@ -1,4 +1,6 @@
 import { GraphQLBoolean, GraphQLFloat, GraphQLID, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLString } from "graphql";
+import { reviewType } from "../../reviews/types.js";
+import reviewModel from "../../../../DB/model/ReviewModel.js";
 
 const imageType = new GraphQLObjectType({
     name: 'ImageType',
@@ -59,6 +61,7 @@ export const productType = new GraphQLObjectType({
         name: { type: new GraphQLNonNull(GraphQLString) },
         slug: { type: new GraphQLNonNull(GraphQLString) },
         description: { type: GraphQLString },
+        rate: { type: GraphQLFloat },
         price: { type: GraphQLFloat },
         discount: { type: GraphQLFloat },
         priceAfterDiscount: { type: GraphQLFloat },
@@ -88,6 +91,13 @@ export const productType = new GraphQLObjectType({
         isDeleted: {
           type: GraphQLBoolean,
         },
+        reviews:{
+          type:reviewType,
+          resolve:async(parent,__)=>{
+            const reviews=await reviewModel.find({productId:parent._id})
+            return reviews
+          }
+        }
       },
 
 })

@@ -10,6 +10,10 @@ const productSchema = new mongoose.Schema({
     },
     slug: String,
     description: String,
+    rate: {
+        type: Number,
+        default: 0,
+      },
     stock: {
         type: Number,
         required: true,

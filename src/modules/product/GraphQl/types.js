@@ -1,21 +1,27 @@
 import { GraphQLBoolean, GraphQLFloat, GraphQLID, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLString } from "graphql";
-import { reviewType } from "../../reviews/types.js";
+import { reviewType } from "../../reviews/GraphQl/types.js";
 import reviewModel from "../../../../DB/model/ReviewModel.js";
+import { brandType } from "../../brand/GraphQl/types.js";
+import brandModel from "../../../../DB/model/BrandModel.js";
 
-const imageType = new GraphQLObjectType({
-    name: 'ImageType',
+export function imageType(name){
+  return new GraphQLObjectType({
+    name: name || 'ProductImageType',
     fields: {
       path: { type: new GraphQLNonNull(GraphQLString) },
       public_id: { type: new GraphQLNonNull(GraphQLString) },
     },
   })
+} 
+const customType = imageType()
+
   const subCategoryType = new GraphQLObjectType({
     name: 'subCategoryType',
     fields: {
       name: {
         type: GraphQLString,
       },
-      Image: { type: imageType },
+      Image: { type: imageType('subCategoryImageType') },
       createdBy: {
         type: GraphQLID,
       },
@@ -37,7 +43,7 @@ export const categoryType = new GraphQLObjectType({
       name: {
         type: GraphQLString,
       },
-      Image: { type: imageType },
+      Image: { type: imageType('categoryImageType') },
       createdBy: {
         type: GraphQLID,
       },
@@ -68,8 +74,8 @@ export const productType = new GraphQLObjectType({
         stock: { type: GraphQLInt },
         colors: { type: new GraphQLList(GraphQLString) },
         size: { type: new GraphQLList(GraphQLString) },
-        mainImage: { type: imageType },
-        subImages: { type: new GraphQLList(imageType) },
+        mainImage: { type: customType },
+        subImages: { type: new GraphQLList(customType) },
         createdBy: {
           type: GraphQLID,
         },
@@ -84,6 +90,13 @@ export const productType = new GraphQLObjectType({
         },
         brandId: {
           type: GraphQLID,
+        },
+        brandInfo: {
+          type: brandType,
+          resolve: async (parent, __) => {
+            const brand = await brandModel.findById(parent.brandId)
+            return brand
+          },
         },
         customId: {
           type: GraphQLString,

@@ -27,3 +27,8 @@ export const Headers = Joi.object({
     authorization: Joi.string().required(),
 
 }).required()
+export const updateProductSchema = Joi.object({
+    id: generalFields.id.required(),
+    stock: Joi.number().integer().positive().required(),
+    authorization: Joi.string().required(),
+  }).required()

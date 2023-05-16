@@ -40,6 +40,37 @@ const auth = (accessRoles) => {
         }
     }
 }
+export const authGraphQl = async(authorization,accessRoles) => {
+    
+    try {
+        if (!accessRoles) {
+            accessRoles = [systemRoles.USER, systemRoles.ADMIN, systemRoles.SUPER_ADMIN]
+        }
+    
+    // access it from validation
+        if (!authorization) throw new Error('please login first')
+        
+        if (!authorization?.startsWith(process.env.BEARER_KEY)) throw new Error('In-valid bearer key')
+        
+        const token = authorization.split(process.env.BEARER_KEY)[1]
+        if (!token) throw new Error('In-valid token')
+        
+        const decoded = decodeToken({ payload: token })
+        if (!decoded?._id) throw new Error('In-valid token payload')
 
+        const authUser = await userModel.findById(decoded._id).select('userName email role changePasswordDate')
+        if (!authUser) throw new Error('Not register account')
+
+        
+        if (decoded.iat < authUser.changePasswordDate / 1000) throw new Error('token expired')
+        // authorization 
+        if (!accessRoles.includes(authUser.role)) throw new Error('Un-Authorized User')
+        
+        return authUser
+    } catch (error) {
+        throw new Error(error)
+    }
+    
+}
 export default auth
 

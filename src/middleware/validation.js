@@ -34,3 +34,12 @@ export const validation = (schema, isHeadersSent = false) => {
         return nxt()
     }
 }
+export const validationGraphQl = async (schema, data) => {
+    const { error } = schema.validate(data, {
+      abortEarly: false,
+    })
+    if (error) {
+      throw new Error(error)
+    }
+    return true
+  }

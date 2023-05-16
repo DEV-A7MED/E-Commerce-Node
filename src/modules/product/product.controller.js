@@ -143,17 +143,24 @@ const productList = async (req, res, nxt) => {
     let avg = 0
     let calc = 0
     for (const product of products) {
-        if (product.Reviews) {
+        if (product.Reviews.length) {
             for (const review of product.Reviews) {
             // console.log(review.rate)
                 avg += review.rate
             }
             calc = avg / product.Reviews.length
             product.rate = Number.parseFloat(calc).toFixed(2)
+            
+            await product.save()
+            
+        }
+        else{
+            product.rate = 0
             await product.save()
         }
-    product.rate = 0
-    await product.save()
+        
+            
+    
     }
     res.status(200).json({ message: 'Done', products })
     
